@@ -45,15 +45,34 @@ def loadRecursively(OpenConnection):
             sys.exit(1)
     if cursor:
         cursor.close()
+
+def loadTags(OpenConnection):
+    cursor = OpenConnection.cursor()
+    cursor.execute("SELECT _tag FROM DATASETS")
+    rows = cursor.fetchall()
+    for row in rows:
+        values = row[0].split()
+        for value in values:
+            try:
+                cursor.execute("INSERT INTO TAGS VALUES ('{0}')".format(value))
+                print value
+
+            except psycopg2.DatabaseError, e:
+                print e
+                OpenConnection.rollback()
+
+    OpenConnection.commit()
+    cursor.close()
+
 if __name__ == '__main__':
     try:
         # Getting connection to the database
         print "Getting connection from the DV database"
-        con = getOpenConnection();
+        con = getOpenConnection()
         con.set_client_encoding('Latin1')
         # Loading Started
-        loadRecursively(con)
-
+        #loadRecursively(con)
+        loadTags(con)
         if con:
             con.close()
 
