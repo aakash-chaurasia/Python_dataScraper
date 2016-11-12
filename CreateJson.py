@@ -1,5 +1,5 @@
 import json
-from collections import OrderedDict
+import psycopg2
 
 import loadToDb as parent
 from DataAccessObjects.TagCount import TagCount
@@ -10,18 +10,20 @@ JsonSuffix  = ".json"
 def createJsonFiles(data, outputFile):
     outputFile = "{0}/{1}{2}".format(JsonOutputPath, outputFile, JsonSuffix)
     output = open(outputFile, "wb")
-    json.dump(data, output)
+    json.dump(data, output, indent=4, sort_keys=True)
 
 def fetchDistinctTags(openConnection) :
-    lis = [1, "aakash", "akriti", "manoj", "bhakti"]
-    tag1 = TagCount()
-    tag1.setTag("Java")
-    tag1.setCount(10)
-    tag2 = TagCount("Python")
-    lis.append(tag1)
-    lis.append(tag2)
+    cursor = openConnection.cursor()
+    lis = []
+    try:
+        cursor.execute("SELECT DISTINCT tag FROM TAGS")
+        rows = cursor.fetchall()
+    except psycopg2.DatabaseError, e:
+        print e
+        openConnection.rollback()
+    for row in rows :
+        lis.append(row[0])
     createJsonFiles(lis, "DistinctTags")
-    print json.dumps(lis, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
     try:
