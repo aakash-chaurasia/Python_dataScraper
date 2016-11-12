@@ -1,4 +1,6 @@
 import json
+from collections import OrderedDict
+
 import loadToDb as parent
 from DataAccessObjects.TagCount import TagCount
 
@@ -12,13 +14,14 @@ def createJsonFiles(data, outputFile):
 
 def fetchDistinctTags(openConnection) :
     lis = [1, "aakash", "akriti", "manoj", "bhakti"]
-    createJsonFiles(lis, "DistinctTags")
     tag1 = TagCount()
     tag1.setTag("Java")
     tag1.setCount(10)
     tag2 = TagCount("Python")
-    print tag1.toString()
-    print tag2.toString()
+    lis.append(tag1)
+    lis.append(tag2)
+    createJsonFiles(lis, "DistinctTags")
+    print json.dumps(lis, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
     try:
