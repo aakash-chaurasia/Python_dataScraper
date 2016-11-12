@@ -1,9 +1,6 @@
-import psycopg2
-import os
-import sys
-import datetime
 import json
 import loadToDb as parent
+from DataAccessObjects.TagCount import TagCount
 
 JsonOutputPath = "JSON"
 JsonSuffix  = ".json"
@@ -16,6 +13,12 @@ def createJsonFiles(data, outputFile):
 def fetchDistinctTags(openConnection) :
     lis = [1, "aakash", "akriti", "manoj", "bhakti"]
     createJsonFiles(lis, "DistinctTags")
+    tag1 = TagCount()
+    tag1.setTag("Java")
+    tag1.setCount(10)
+    tag2 = TagCount("Python")
+    print tag1.toString()
+    print tag2.toString()
 
 if __name__ == '__main__':
     try:
@@ -29,3 +32,5 @@ if __name__ == '__main__':
 
     except Exception as detail:
         print "Something bad has happened!!! This is the error ==> ", detail
+        if con:
+            con.close()
