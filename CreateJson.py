@@ -3,6 +3,7 @@ import psycopg2
 
 import loadToDb as parent
 from DataAccessObjects.TagCount import TagCount
+from DataAccessObjects.QuestionsAndTags import QuestionsAndTags
 
 JsonOutputPath = "JSON"
 JsonSuffix  = ".json"
@@ -49,6 +50,26 @@ def fetchListOfTagCounts(openConnection):
         if (cursor):
             cursor.close()
 
+def fetchQuestionWithTags(openConnection):
+    cursor = openConnection.cursor()
+    lis = []
+    try:
+        cursor.execute("Select distinct _title, _tag from datasets limit 30")
+        rows = cursor.fetchall()
+        cursor.close()
+        for row in rows :
+            t = QuestionsAndTags(row[0].strip("\""), row[1].split(" ")[:-1])
+            t1 = []
+            t1.append(t.getQid())
+            t1.append(t.getTags())
+            lis.append(t1)
+        createJsonFiles(lis, "QuestionToTags")
+    except Exception, e:
+        print e
+        openConnection.rollback()
+        if (cursor):
+            cursor.close()
+
 if __name__ == '__main__':
     try:
         # Getting connection to the database
@@ -56,7 +77,8 @@ if __name__ == '__main__':
         con = parent.getOpenConnection()
         con.set_client_encoding('Latin1')
         # fetchDistinctTags(con)
-        fetchListOfTagCounts(con)
+        # fetchListOfTagCounts(con)
+        fetchQuestionWithTags(con)
         if con:
             con.close()
 
