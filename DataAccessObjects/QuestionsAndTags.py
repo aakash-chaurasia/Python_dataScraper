@@ -1,10 +1,12 @@
 class QuestionsAndTags(dict):
     qid = None
+    title = ""
     tags = []
 
-    def __init__(self, qid="", tags = []):
-        dict.__init__(self, qid=qid, tags=tags)
+    def __init__(self, qid="", title="", tags = []):
+        dict.__init__(self, qid=qid, title=title, tags=tags)
         self.qid = qid
+        self.title = title
         self.tags = tags
 
     def setTags(self, tags):
@@ -21,6 +23,13 @@ class QuestionsAndTags(dict):
     def getQid(self):
         return self.qid
 
+    def getTitle(self):
+        return self.title
+
+    def setTitle(self, title):
+        dict.__init__(self, title=title)
+        self.title = title
+
     def toString(self):
-        result = "Question: {0}, Tags: {1}".format(self.qid, self.tags)
+        result = "Question: {0}, Title: {2}, Tags: {1}".format(self.qid, self.tags, self.title)
         return result

@@ -48,19 +48,38 @@ def loadRecursively(OpenConnection):
 
 def loadTags(OpenConnection):
     cursor = OpenConnection.cursor()
-    cursor.execute("SELECT _tag FROM DATASETS")
+    cursor.execute("SELECT _tag FROM FQUESTIONS")
     rows = cursor.fetchall()
+    output = []
+    cursor.execute('TRUNCATE TABLE TAGS');
     for row in rows:
         values = row[0].split()
         for value in values:
             try:
                 cursor.execute("INSERT INTO TAGS VALUES ('{0}')".format(value))
                 print value
-
             except psycopg2.DatabaseError, e:
                 print e
                 OpenConnection.rollback()
 
+    OpenConnection.commit()
+    cursor.close()
+
+def loadAnswers(OpenConnection):
+    cursor = OpenConnection.cursor()
+    cursor.execute("SELECT * FROM DATASETS WHERE _TYPE = 'answer'")
+    rows = cursor.fetchall()
+    count = 1
+    try:
+        for row in rows:
+            cursor.execute("SELECT row_number FROM QUESTIONS WHERE _TITLE = '{0}'".format(row[1]))
+            rowinsert =(count, int(cursor.fetchall()[0][0])) + row
+            cursor.execute("INSERT INTO ANSWERS VALUES {0}".format(rowinsert))
+            print count
+            count = count + 1
+    except Exception, e:
+        print e.message
+        OpenConnection.rollback()
     OpenConnection.commit()
     cursor.close()
 
@@ -73,6 +92,7 @@ if __name__ == '__main__':
         # Loading Started
         #loadRecursively(con)
         loadTags(con)
+        #loadAnswers(con)
         if con:
             con.close()
 

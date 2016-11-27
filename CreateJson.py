@@ -12,7 +12,7 @@ def createJsonFiles(data, outputFile):
     outputFile = "{0}/{1}{2}".format(JsonOutputPath, outputFile, JsonSuffix)
     output = open(outputFile, "wb")
     print "Creating JSON file - '{0}'".format(outputFile)
-    json.dump(data, output, indent=4, sort_keys=True)
+    json.dump(data, output, encoding='Latin1')
     print "'{0}' JSON file created.".format(outputFile)
 
 def fetchDistinctTags(openConnection) :
@@ -54,13 +54,14 @@ def fetchQuestionWithTags(openConnection):
     cursor = openConnection.cursor()
     lis = []
     try:
-        cursor.execute("Select distinct _title, _tag from datasets limit 30")
+        cursor.execute("Select row_number() over () as qid, t.* from (Select distinct _title, _tag from datasets where lower(_tag) like '%android%' limit 40) as t")
         rows = cursor.fetchall()
         cursor.close()
         for row in rows :
-            t = QuestionsAndTags(row[0].strip("\""), row[1].split(" ")[:-1])
+            t = QuestionsAndTags(row[0], row[1].strip("\""), row[2].split(" ")[:-1])
             t1 = []
             t1.append(t.getQid())
+            t1.append(t.getTitle())
             t1.append(t.getTags())
             lis.append(t1)
         createJsonFiles(lis, "QuestionToTags")
@@ -70,6 +71,24 @@ def fetchQuestionWithTags(openConnection):
         if (cursor):
             cursor.close()
 
+
+def fetchTagList(openConnection):
+    cursor = openConnection.cursor()
+    lis = []
+    try:
+        cursor.execute("SELECT tag FROM tag_count order by count desc limit 40")
+        rows = cursor.fetchall()
+        cursor.close()
+        for row in rows:
+            lis.append(row[0])
+        createJsonFiles(lis, "ListTags")
+    except Exception, e:
+        print e
+        openConnection.rollback()
+        if (cursor):
+            cursor.close()
+
+
 if __name__ == '__main__':
     try:
         # Getting connection to the database
@@ -78,7 +97,8 @@ if __name__ == '__main__':
         con.set_client_encoding('Latin1')
         # fetchDistinctTags(con)
         # fetchListOfTagCounts(con)
-        fetchQuestionWithTags(con)
+        # fetchQuestionWithTags(con)
+        fetchTagList(con)
         if con:
             con.close()
 
