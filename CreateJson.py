@@ -97,7 +97,7 @@ def fetchTagList(openConnection):
     cursor = openConnection.cursor()
     lis = []
     try:
-        cursor.execute("SELECT tag, count FROM tag_count order by count desc limit 40")
+        cursor.execute("SELECT tag,420 - row_number() over () * 10 FROM tag_count order by count desc limit 40")
         rows = cursor.fetchall()
         cursor.close()
         for row in rows:
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         con = parent.getOpenConnection()
         con.set_client_encoding('Latin1')
         # fetchDistinctTags(con)
-        fetchListOfTagCounts(con)
+        # fetchListOfTagCounts(con)
         # fetchQuestionWithTags(con)
         # fetchTagToQuestions(con)
         fetchTagList(con)
