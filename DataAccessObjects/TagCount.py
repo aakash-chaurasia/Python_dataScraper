@@ -1,28 +1,28 @@
 class TagCount(dict):
-    Tag = None
-    count = None
+    text = None
+    size = None
 
-    def __init__(self, Tag="", count=0):
-        dict.__init__(self, Tag=Tag, count=count)
-        self.Tag = Tag
-        self.count = count
+    def __init__(self, text="", size=0):
+        dict.__init__(self, text=text, size=size)
+        self.text = text
+        self.size = size
 
-    def setTag(self, Tag):
-        dict.__init__(self, Tag=Tag)
-        self.Tag = Tag
+    def settext(self, text):
+        dict.__init__(self, text=text)
+        self.text = text
 
-    def getTag(self):
-        return self.Tag
+    def gettext(self):
+        return self.text
 
-    def setCount(self, count):
-        dict.__init__(self, count=count)
-        self.count = count
+    def setsize(self, size):
+        dict.__init__(self, size=size)
+        self.size = size
 
-    def getCount(self):
-        return self.count
+    def getsize(self):
+        return self.size
 
     def toString(self):
-        result = "Tag: {0}, Count: {1}".format(self.Tag, self.count)
+        result = "text: {0}, size: {1}".format(self.text, self.size)
         return result
 
     # def toJson(self):

@@ -54,7 +54,7 @@ def fetchQuestionWithTags(openConnection):
     cursor = openConnection.cursor()
     lis = []
     try:
-        cursor.execute("Select row_number() over () as qid, t.* from (Select distinct _title, _tag from datasets where lower(_tag) like '%android%' limit 40) as t")
+        cursor.execute("Select row_number() over () as qid, t.* from (Select distinct _title, _tag from datasets where lower(_tag) like '%android%') as t")
         rows = cursor.fetchall()
         cursor.close()
         for row in rows :
@@ -71,17 +71,61 @@ def fetchQuestionWithTags(openConnection):
         if (cursor):
             cursor.close()
 
+def fetchQuestionAndTags(openConnection, res):
+    cursor = openConnection.cursor()
+    lis = []
+    try:
+        for r in res:
+            cursor.execute("SELECT * FROM QUESTION_TO_TAGS WHERE ROW_NUMBER = {0}".format(str(r)))
+            rows = cursor.fetchall()[0]
+            t = QuestionsAndTags(rows[0], rows[1], rows[2].split(" ")[:-1])
+            t1 = []
+            t1.append(t.getQid())
+            t1.append(t.getTitle())
+            t1.append(t.getTags())
+            lis.append(t1)
+        cursor.close()
+        return json.dumps(lis)
+    except Exception, e:
+        print e
+        openConnection.rollback()
+        if (cursor):
+            cursor.close()
+
 
 def fetchTagList(openConnection):
     cursor = openConnection.cursor()
     lis = []
     try:
-        cursor.execute("SELECT tag FROM tag_count order by count desc limit 40")
+        cursor.execute("SELECT tag, count FROM tag_count order by count desc limit 40")
         rows = cursor.fetchall()
         cursor.close()
         for row in rows:
-            lis.append(row[0])
+            t = TagCount(row[0], row[1])
+            lis.append(t)
         createJsonFiles(lis, "ListTags")
+    except Exception, e:
+        print e
+        openConnection.rollback()
+        if (cursor):
+            cursor.close()
+
+def fetchTagToQuestions(openConnection):
+    cursor = openConnection.cursor()
+    lis = []
+    try:
+        cursor.execute("SELECT tag FROM DISTINCTTAGS")
+        rows = cursor.fetchall()
+        cursor.execute("TRUNCATE TABLE TAG_TO_QUESTIONS")
+        for row in rows:
+            lis1 = []
+            cursor.execute("SELECT ROW_NUMBER FROM QUESTION_TO_TAGS WHERE _TAG LIKE '%{0}%'".format(row[0]))
+            rows1 = cursor.fetchall()
+            for row1 in rows1:
+                lis1.append(str(row1[0]))
+            strlist = ' '.join(lis1)
+            cursor.execute("INSERT INTO TAG_TO_QUESTIONS VALUES ('{0}', '{1}')".format(str(row[0]), strlist))
+            openConnection.commit()
     except Exception, e:
         print e
         openConnection.rollback()
@@ -96,8 +140,9 @@ if __name__ == '__main__':
         con = parent.getOpenConnection()
         con.set_client_encoding('Latin1')
         # fetchDistinctTags(con)
-        # fetchListOfTagCounts(con)
+        fetchListOfTagCounts(con)
         # fetchQuestionWithTags(con)
+        # fetchTagToQuestions(con)
         fetchTagList(con)
         if con:
             con.close()
