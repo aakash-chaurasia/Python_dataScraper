@@ -59,14 +59,18 @@ def fetchQuestionWithTags(openConnection):
         cursor.execute("Select row_number() over () as qid, t.* from (Select distinct _title, _tag from datasets where lower(_tag) like '%android%') as t")
         rows = cursor.fetchall()
         cursor.close()
+        t2 = []
         for row in rows :
+            if len(t2) == 4:
+                lis.append(t2)
+                t2 = []
             t = QuestionsAndTags(row[0], row[1].strip("\""), row[2].split(" ")[:-1])
             t1 = []
             t1.append(t.getQid())
             t1.append(t.getTitle())
             t1.append(t.getTags())
-            lis.append(t1)
-        createJsonFiles(lis, "QuestionToTags")
+            t2.append(t1)
+        createJsonFiles(lis, "QuestionToTags2")
     except Exception, e:
         print e
         openConnection.rollback()
@@ -188,10 +192,10 @@ if __name__ == '__main__':
         con.set_client_encoding('Latin1')
         # fetchDistinctTags(con)
         # fetchListOfTagCounts(con)
-        # fetchQuestionWithTags(con)
+        fetchQuestionWithTags(con)
         # fetchTagToQuestions(con)
         # fetchTagList(con)
-        fetchTagsOfTags(con)
+        # fetchTagsOfTags(con)
         if con:
             con.close()
 
