@@ -82,7 +82,7 @@ def fetchQuestionAndTags(openConnection, res):
     lis = []
     try:
         for r in res:
-            cursor.execute("SELECT * FROM QUESTION_TO_TAGS WHERE ROW_NUMBER = {0}".format(str(r)))
+            cursor.execute("SELECT * FROM QUESTION_TO_TAGS WHERE ROW_NUMBER = {0} LIMIT 40".format(str(r)))
             rows = cursor.fetchall()[0]
             t = QuestionsAndTags(rows[0], rows[1], rows[2].split(" ")[:-1])
             t1 = []
