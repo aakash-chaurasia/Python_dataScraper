@@ -23,7 +23,7 @@ def checkTag(QueryTag):
     cursor = OpenConnection.cursor()
     cursor.execute("SELECT count(1) FROM DISTINCTTAGS WHERE tag = '{0}'".format(QueryTag))
     rows = cursor.fetchall()
-    print rows
+    #print rows
     return json.dumps(rows[0][0])
 
 @app.route('/questionToTags/<string:QueryTags>', methods=['GET'])
@@ -45,8 +45,15 @@ def getQuestionToTags(QueryTags):
             result = result & s
     return fetchQuestionAndTags(OpenConnection, list(result))
 
+@app.route('/writeAfterFirst/<string:QueryTags>', methods=['GET'])
+@crossdomain("*")
+def postProcessFirst(QueryTags):
+    f = open("CSV/secondInput.txt", "w")
+    f.write(QueryTags)
+    return json.dumps(1)
+
 if __name__ == '__main__':
     global OpenConnection
     OpenConnection = getOpenConnection()
-    app.run(debug=True, host='192.168.0.16')
+    app.run(debug=True, host='192.168.0.14')
     app.run(debug=True)
