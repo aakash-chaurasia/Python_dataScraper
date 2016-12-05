@@ -1,5 +1,6 @@
-class TagsOfTags(dict):
-    name = []
+class FourthScreen(dict):
+
+    name = None
     children = []
 
     def __init__(self, name="", children=[]):

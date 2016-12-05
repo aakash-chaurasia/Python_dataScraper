@@ -21,12 +21,12 @@ def fetchDistinctTags(openConnection) :
     cursor = openConnection.cursor()
     lis = []
     try:
-        cursor.execute("SELECT DISTINCT tag FROM TAGS")
+        cursor.execute("SELECT tag, count(1) FROM TAGS GROUP BY tag ORDER BY 2 DESC LIMIT 100")
         rows = cursor.fetchall()
         cursor.close()
         for row in rows:
             lis.append(row[0])
-        createJsonFiles(lis, "DistinctTags")
+        createJsonFiles(lis, "DistinctTags100")
     except Exception, e:
         print e
         openConnection.rollback()
@@ -81,15 +81,21 @@ def fetchQuestionAndTags(openConnection, res):
     cursor = openConnection.cursor()
     lis = []
     try:
+        t2 = []
         for r in res:
+            if(len(lis) > 20):
+                break
             cursor.execute("SELECT * FROM QUESTION_TO_TAGS WHERE ROW_NUMBER = {0}".format(str(r)))
             rows = cursor.fetchall()[0]
             t = QuestionsAndTags(rows[0], rows[1], rows[2].split(" ")[:-1])
+            if len(t2) == 4:
+                lis.append(t2)
+                t2 = []
             t1 = []
             t1.append(t.getQid())
             t1.append(t.getTitle())
             t1.append(t.getTags())
-            lis.append(t1)
+            t2.append(t1)
         cursor.close()
         return json.dumps(lis)
     except Exception, e:
@@ -182,6 +188,48 @@ def fetchTagsOfTags(openConnection):
         if (cursor):
             cursor.close()
 
+def tagsOfTags(openConnection, queryTag):
+    cursor = openConnection.cursor()
+    try:
+        # cursor.execute("SELECT tag FROM distincttags")
+        # tags = cursor.fetchall();
+        # for tag in tags:
+        s = set()
+        lis1 = []
+        cursor.execute("SELECT _questionids FROM TAG_TO_QUESTIONS WHERE _tag = '{0}'".format(queryTag))
+        qids = set(cursor.fetchall()[0][0].split())
+        cursor.execute("SELECT _tag FROM fquestions where _tag like '%{0}%' ORDER BY _reputation desc".format(queryTag))
+        rows = cursor.fetchall()
+        l = []
+        for row in rows:
+            if len(l) > 200:
+                break
+            l = l + row[0].split()
+        s = set(l)
+        for item in list(s) :
+            if(len(lis1)) > 20:
+                break
+            cursor.execute("SELECT _questionids FROM TAG_TO_QUESTIONS WHERE _tag = '{0}'".format(item))
+            qids1 = set(cursor.fetchall()[0][0].split())
+            lis2 = list(qids & qids1)
+            lis3 = []
+            x = 0
+            for li in lis2:
+                if x > 5 :
+                    break
+                temp = childName(li)
+                lis3.append(temp)
+                x = x + 1
+            child = TagsOfTags(item, lis3)
+            lis1.append(child)
+        mainTag = TagsOfTags(queryTag, lis1)
+        cursor.close()
+        return json.dumps(mainTag)
+    except Exception, e:
+        print e
+        openConnection.rollback()
+        if (cursor):
+            cursor.close()
 
 
 if __name__ == '__main__':
@@ -190,7 +238,7 @@ if __name__ == '__main__':
         print "Getting connection from the DV database"
         con = parent.getOpenConnection()
         con.set_client_encoding('Latin1')
-        # fetchDistinctTags(con)
+        fetchDistinctTags(con)
         # fetchListOfTagCounts(con)
         fetchQuestionWithTags(con)
         # fetchTagToQuestions(con)
