@@ -70,18 +70,21 @@ def fetchTagsFromQuery():
 @app.route('/onLoadFourth/<string:questionId>', methods=['GET'])
 @crossdomain("*")
 def preProcessFourth(questionId):
-    output = []
-    cursor = OpenConnection.cursor()
-    cursor.execute("SELECT _title, _text, _code, _tag FROM FQUESTIONS WHERE row_number = {0}".format(questionId))
-    row = cursor.fetchall()[0]
-    output.append(row)
-    cursor.execute("SELECT _title, _text, _code, _tag FROM FACCEPTEDANSWERS WHERE fk_row_num = {0}".format(questionId))
-    for row in cursor.fetchall():
+    if(questionId != 'null'):
+        output = []
+        cursor = OpenConnection.cursor()
+        cursor.execute("SELECT _title, _text, _code, _tag FROM FQUESTIONS WHERE row_number = {0}".format(questionId))
+        row = cursor.fetchall()[0]
         output.append(row)
-    cursor.execute("SELECT _title, _text, _code, _tag FROM FANSWERS WHERE fk_row_num = {0}".format(questionId))
-    for row in cursor.fetchall():
-        output.append(row)
-    return json.dumps(output)
+        cursor.execute("SELECT _title, _text, _code, _tag FROM FACCEPTEDANSWERS WHERE fk_row_num = {0}".format(questionId))
+        for row in cursor.fetchall():
+            output.append(row)
+        cursor.execute("SELECT _title, _text, _code, _tag FROM FANSWERS WHERE fk_row_num = {0}".format(questionId))
+        for row in cursor.fetchall():
+            output.append(row)
+        return json.dumps(output)
+    else:
+        return json.dumps(0)
 
 if __name__ == '__main__':
     global OpenConnection
