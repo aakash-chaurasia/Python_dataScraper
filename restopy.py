@@ -1,6 +1,7 @@
 #!flask/bin/python
 import json
-
+import BaseHTTPServer, SimpleHTTPServer
+import ssl
 import psycopg2
 from flask import Flask
 
@@ -38,12 +39,17 @@ def getQuestionToTags():
         row = cursor.fetchall()[0][0]
         cols = set(row.split(" "))
         output.append(cols)
-    result = None
-    for s in output:
-        if result == None:
-            result = s
-        else :
-            result = result & s
+    result = set()
+    index = len(output)
+    while len(list(result)) < 16:
+        flag = True
+        for s in output[0:index]:
+            if flag:
+                result = s
+            else :
+                result = result & s
+            flag = False
+        index = index - 1
     return fetchQuestionAndTags(OpenConnection, list(result))
 
 @app.route('/writeAfterFirst/<string:QueryTags>', methods=['GET'])
@@ -89,4 +95,7 @@ def preProcessFourth(questionId):
 if __name__ == '__main__':
     global OpenConnection
     OpenConnection = getOpenConnection()
-    app.run(debug=True, host='192.168.0.16', threaded=True)
+    app.run(debug=True, host='192.168.0.16', port=4443, threaded=True)
+    # httpd = BaseHTTPServer.HTTPServer(('localhost', 4443), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    # httpd.socket = ssl.wrap_socket(httpd.socket, certfile='path/to/localhost.pem', server_side=True)
+    # httpd.serve_forever()

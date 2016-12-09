@@ -1,1 +1,1 @@
-java connect database database jdbc jdbc
+android java database jdbc sql ssl
